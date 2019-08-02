@@ -1,2 +1,2 @@
 # BuggyFormTest
-Sample Java application to domonstrate the use of WinAppDriver. The Windows Forms application this project drives WinAppDriver for is BuggyForm.
+Sample Java application to domonstrate automated testing with WinAppDriver. The BuggyForm sample application can be found at https://github.com/Gene-R-Pool/BuggyForm.
