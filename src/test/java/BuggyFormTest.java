@@ -33,7 +33,6 @@ public class BuggyFormTest {
         if (buggyFormSession != null) {
             buggyFormSession.quit();
         }
-
         buggyFormSession = null;
     }
 
@@ -49,7 +48,6 @@ public class BuggyFormTest {
         WebElement editText2 = buggyFormSession.findElementByName("textBox2");
         editText1.sendKeys("Hello");
         editText2.sendKeys("World");
-
         buggyFormSession.findElementByAccessibilityId("buttonGo").click();
     }
 
@@ -60,24 +58,41 @@ public class BuggyFormTest {
         comboBox1OpenButton.click();
         WebElement comboBox1SecondListItem = comboBox1.findElement(By.name("Second item"));
         comboBox1SecondListItem.click();
-
         buggyFormSession.findElementByAccessibilityId("buttonGo").click();
     }
 
     @Test
     public void SwitchToSecondaryTabAndClickCheckBox() {
-        WebElement mainTab = buggyFormSession.findElementByName("Main Tab");
         WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
-
         secondaryTab.click();
         WebElement checkBox = buggyFormSession.findElementByName("checkBox");
         String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
         if(checkBoxToggleState.equalsIgnoreCase("0")) {
             checkBox.click();
         }
-        mainTab.click();
-
         buggyFormSession.findElementByAccessibilityId("buttonGo").click();
+    }
+
+    @Test
+    public void SwitchToSecondaryTabAndClickCheckBoxWithDuplicateName() {
+        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
+        secondaryTab.click();
+        WebElement checkBox = buggyFormSession.findElementByName("checkBox2");
+        String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
+        if(checkBoxToggleState.equalsIgnoreCase("0")) {
+            checkBox.click();
+        }
+    }
+
+    @Test
+    public void SwitchToSecondaryTabAndClickCheckBoxWithDuplicateNameXPath() {
+        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
+        secondaryTab.click();
+        WebElement checkBox = buggyFormSession.findElementByXPath("//CheckBox[@Name='checkBox2'][2]");
+        String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
+        if(checkBoxToggleState.equalsIgnoreCase("0")) {
+            checkBox.click();
+        }
     }
 
     @Test
