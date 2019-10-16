@@ -1,6 +1,8 @@
 import org.junit.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.util.concurrent.TimeUnit;
@@ -9,6 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.appium.java_client.windows.WindowsDriver;
+
+import static java.lang.Thread.sleep;
 
 public class BuggyFormTest {
 
@@ -93,6 +97,29 @@ public class BuggyFormTest {
         if(checkBoxToggleState.equalsIgnoreCase("0")) {
             checkBox.click();
         }
+    }
+
+    @Test
+    public void HoverMouseAndSendKeys() {
+        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
+        secondaryTab.click();
+        WebElement textBox3 = buggyFormSession.findElementByName("textBoxMouseHover");
+
+        Actions mouseOverTextBox3 = new Actions(buggyFormSession);
+        mouseOverTextBox3.moveToElement(textBox3, 50, 50);
+        mouseOverTextBox3.perform();
+
+        try {
+            sleep(5000);
+        } catch(Exception e) {
+            logger.log(Level.WARNING, "Error while sleeping: " + e.getMessage());
+        }
+
+        Assert.assertTrue(textBox3.getText().equals("Mouse Hover"));
+
+        Actions builder = new Actions(buggyFormSession);
+        builder.sendKeys(Keys.chord(Keys.ALT, "G"));
+        builder.perform();
     }
 
     @Test
