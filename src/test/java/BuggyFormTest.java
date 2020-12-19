@@ -5,6 +5,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.net.URL;
 import java.util.logging.Level;
@@ -16,18 +17,32 @@ import static java.lang.Thread.sleep;
 
 public class BuggyFormTest {
 
-    private static WindowsDriver buggyFormSession = null;
-    private Logger logger = Logger.getLogger(BuggyFormTest.class.getName());
+    private static WindowsDriver<WebElement> buggyFormSession;
+    private static final Logger logger = Logger.getLogger(BuggyFormTest.class.getName());
 
     @BeforeClass
     public static void Setup() {
+        String winAppDriverAddress = "127.0.0.1";
+        String winAppDriverPort = "4723";
+        try {
+            File winAppDriverPath = new File("C:/Program Files (x86)/Windows Application Driver/WinAppDriver.exe");
+            if (winAppDriverPath.isFile()) {
+                new ProcessBuilder(String.valueOf(winAppDriverPath), winAppDriverAddress, winAppDriverPort).inheritIO().start();
+                logger.log(Level.INFO, "Running WinAppDriver from application folder.");
+            } else {
+                logger.log(Level.SEVERE, "WinAppDriver was not Found, Please verify that is installed");
+            }
+        } catch(Exception e) {
+            logger.log(Level.SEVERE, "Failed to start WinAppDriver: " + e.getMessage());
+        }
+
         try {
             DesiredCapabilities appCapabilities = new DesiredCapabilities();
-            appCapabilities.setCapability("app", "C:\\dev\\code\\BuggyForm\\BuggyForm\\bin\\Debug\\BuggyForm.exe");
-            buggyFormSession = new WindowsDriver(new URL("http://127.0.0.1:4723"), appCapabilities);
+            appCapabilities.setCapability("app", "C:/dev/code/BuggyForm/BuggyForm/bin/Debug/BuggyForm.exe");
+            buggyFormSession = new WindowsDriver<>(new URL("http://" + winAppDriverAddress + ":" + winAppDriverPort), appCapabilities);
             buggyFormSession.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
         }catch(Exception e){
-            e.printStackTrace();
+            logger.log(Level.INFO, "Failed to connect to WinAppDriver: " + e.getMessage());
         }
     }
 
@@ -41,22 +56,20 @@ public class BuggyFormTest {
     }
 
     @Test
-    public void StartAndExitBuggyForm()
-    {
-        buggyFormSession.findElementByAccessibilityId("buttonClose").click();
-    }
-
-    @Test
     public void EditTextBoxes() {
+        switchToMainTab();
         WebElement editText1 = buggyFormSession.findElementByName("textBox1");
         WebElement editText2 = buggyFormSession.findElementByName("textBox2");
+        editText1.clear();
         editText1.sendKeys("Hello");
+        editText2.clear();
         editText2.sendKeys("World");
         buggyFormSession.findElementByAccessibilityId("buttonGo").click();
     }
 
     @Test
     public void SelectSecondItemFromComboBox() {
+        switchToMainTab();
         WebElement comboBox1 = buggyFormSession.findElementByAccessibilityId("comboBox1");
         WebElement comboBox1OpenButton = comboBox1.findElement(By.name("Open"));
         comboBox1OpenButton.click();
@@ -67,8 +80,7 @@ public class BuggyFormTest {
 
     @Test
     public void SwitchToSecondaryTabAndClickCheckBox() {
-        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
-        secondaryTab.click();
+        switchToSecondaryTab();
         WebElement checkBox = buggyFormSession.findElementByName("checkBox");
         String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
         if(checkBoxToggleState.equalsIgnoreCase("0")) {
@@ -79,8 +91,7 @@ public class BuggyFormTest {
 
     @Test
     public void SwitchToSecondaryTabAndClickCheckBoxWithDuplicateName() {
-        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
-        secondaryTab.click();
+        switchToSecondaryTab();
         WebElement checkBox = buggyFormSession.findElementByName("checkBox2");
         String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
         if(checkBoxToggleState.equalsIgnoreCase("0")) {
@@ -90,8 +101,7 @@ public class BuggyFormTest {
 
     @Test
     public void SwitchToSecondaryTabAndClickCheckBoxWithDuplicateNameXPath() {
-        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
-        secondaryTab.click();
+        switchToSecondaryTab();
         WebElement checkBox = buggyFormSession.findElementByXPath("//CheckBox[@Name='checkBox2'][2]");
         String checkBoxToggleState = checkBox.getAttribute("Toggle.ToggleState");
         if(checkBoxToggleState.equalsIgnoreCase("0")) {
@@ -101,8 +111,7 @@ public class BuggyFormTest {
 
     @Test
     public void HoverMouseAndSendKeys() {
-        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
-        secondaryTab.click();
+        switchToSecondaryTab();
         WebElement textBox3 = buggyFormSession.findElementByName("textBoxMouseHover");
 
         Actions mouseOverTextBox3 = new Actions(buggyFormSession);
@@ -115,7 +124,7 @@ public class BuggyFormTest {
             logger.log(Level.WARNING, "Error while sleeping: " + e.getMessage());
         }
 
-        Assert.assertTrue(textBox3.getText().equals("Mouse Hover"));
+        Assert.assertEquals("Mouse Hover", textBox3.getText());
 
         Actions builder = new Actions(buggyFormSession);
         builder.sendKeys(Keys.chord(Keys.ALT, "G"));
@@ -147,4 +156,17 @@ public class BuggyFormTest {
         }
     }
 
+    private void switchToMainTab() {
+        WebElement mainTab = buggyFormSession.findElementByName("Main Tab");
+        if(!mainTab.isSelected()) {
+            mainTab.click();
+        }
+    }
+
+    private void switchToSecondaryTab() {
+        WebElement secondaryTab = buggyFormSession.findElementByName("Secondary Tab");
+        if(!secondaryTab.isSelected()) {
+            secondaryTab.click();
+        }
+    }
 }
